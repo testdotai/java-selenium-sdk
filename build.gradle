@@ -1,0 +1,107 @@
+plugins {
+    id 'java-library'
+    id 'eclipse'
+    id 'maven-publish'
+    id 'signing'
+}
+
+
+description="${project.name} build script"
+group="ai.test.sdk"
+version="0.0.1"
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api 'com.squareup.okhttp3:okhttp:4.9.3'
+    api 'com.google.code.gson:gson:2.8.9'
+    api 'org.seleniumhq.selenium:selenium-java:3.141.59'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
+}
+
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+
+    withJavadocJar()
+    withSourcesJar()
+}
+
+javadoc {
+    source = sourceSets.main.allJava
+    classpath = configurations.compileClasspath
+
+    options {
+        //setOutputLevel JavadocOutputLevel.VERBOSE
+        setMemberLevel JavadocMemberLevel.PUBLIC
+        setAuthor true
+        
+        jFlags '-Dhttp.agent=gradle-javadoc'
+
+        links "https://docs.oracle.com/en/java/javase/11/docs/api/"
+        links "https://www.selenium.dev/selenium/docs/api/java/"
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            pom {
+                name = 'test-ai-selenium'
+                description = 'Testing with selenium enhanced by Test.ai'
+                inceptionYear = '2021'
+                url = 'https://github.com/testdotai/java-selenium-sdk'
+                licenses {
+                    license {
+                        name = 'Apache License, Version 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'test.ai'
+                        name = 'Appdiff, Inc.'
+                        email = 'sdk@test.ai'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/testdotai/java-selenium-sdk.git'
+                    developerConnection = 'scm:git:ssh://github.com/testdotai/java-selenium-sdk.git'
+                    url = 'https://github.com/testdotai/java-selenium-sdk'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+
+            credentials {
+                username project.hasProperty("ossrhUsername") ? project.properties["ossrhUsername"] : System.getenv('ossrhUsername')
+                password project.hasProperty("ossrhPassword") ? project.properties["ossrhPassword"] : System.getenv('ossrhPassword')
+            }
+        }
+    }
+}
+
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+wrapper {
+    gradleVersion = '7.4'
+}
