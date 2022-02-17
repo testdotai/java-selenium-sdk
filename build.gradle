@@ -8,7 +8,7 @@ plugins {
 
 description="${project.name} build script"
 group="ai.test.sdk"
-version="0.0.1"
+version="0.0.2"
 
 
 repositories {

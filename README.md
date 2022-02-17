@@ -22,13 +22,13 @@ Add the following line(s) to the dependencies section in your
 <dependency>
   <groupId>ai.test.sdk</groupId>
   <artifactId>test-ai-selenium</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
 </dependency>
 ````
 
 **build.gradle (Gradle)**
 ```groovy
-implementation 'ai.test.sdk:test-ai-selenium:0.0.1'
+implementation 'ai.test.sdk:test-ai-selenium:0.0.2'
 ```
 
 ## Tutorial
