@@ -1,5 +1,8 @@
 package ai.test.sdk;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -13,6 +16,10 @@ import okhttp3.Response;
  */
 final class JsonUtils
 {
+	/**
+	 * The logger for this class
+	 */
+	private static Logger log = LoggerFactory.getLogger(JsonUtils.class);
 
 	/**
 	 * Convenience method, extract the body of a {@code Response} as a {@code JsonObject}.
@@ -24,10 +31,10 @@ final class JsonUtils
 	{
 		try
 		{
-			String b = r.body().string();
-			// System.err.printf("%d ---- %s%n", r.code(), b);
+			String body = r.body().string();
+			log.debug("Status: {} ----- Body: {}", r.code(), body);
 
-			return JsonParser.parseString(b).getAsJsonObject();
+			return JsonParser.parseString(body).getAsJsonObject();
 		}
 		catch (Throwable e)
 		{

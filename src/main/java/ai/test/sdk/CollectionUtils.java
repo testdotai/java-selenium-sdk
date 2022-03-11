@@ -25,37 +25,4 @@ final class CollectionUtils
 
 		return m;
 	}
-
-	/**
-	 * Simple Tuple implementation. A Tuple is an immutable two-pair of values. It may consist of any two Objects, which may or may not be in of the same type.
-	 * 
-	 * @author Alexander Wu (alec@test.ai)
-	 * 
-	 * @param <K> The type of Object allowed for the first Object in the tuple.
-	 * @param <V> The type of Object allowed for the second Object in the tuple.
-	 */
-	public static class Tuple<K, V>
-	{
-		/**
-		 * The k value of the tuple
-		 */
-		public final K k;
-
-		/**
-		 * The y value of the tuple
-		 */
-		public final V v;
-
-		/**
-		 * Constructor, creates a new Tuple from the specified values.
-		 * 
-		 * @param k The first entry in the Tuple.
-		 * @param v The second entry in the Tuple.
-		 */
-		public Tuple(K k, V v)
-		{
-			this.k = k;
-			this.v = v;
-		}
-	}
 }

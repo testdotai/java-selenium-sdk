@@ -1,20 +1,34 @@
 package ai.test.sdk;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 
+import org.openqa.selenium.By;
+import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Keyboard;
+import org.openqa.selenium.interactions.Mouse;
+import org.openqa.selenium.interactions.Sequence;
+import org.openqa.selenium.remote.CommandExecutor;
+import org.openqa.selenium.remote.ErrorHandler;
+import org.openqa.selenium.remote.FileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.SessionId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 
@@ -27,8 +41,14 @@ import okhttp3.Response;
  * 
  * @author Alexander Wu (alec@test.ai)
  */
-public class TestAiDriver // extends RemoteWebDriver
+@SuppressWarnings("deprecation")
+public class TestAiDriver extends RemoteWebDriver
 {
+	/**
+	 * The logger for this class
+	 */
+	private static Logger log = LoggerFactory.getLogger(TestAiDriver.class);
+
 	/**
 	 * The client to use for making http requests
 	 */
@@ -95,7 +115,7 @@ public class TestAiDriver // extends RemoteWebDriver
 		client = this.serverURL.equals(HttpUrl.parse("https://sdk.dev.test.ai")) ? NetUtils.unsafeClient() : NetUtils.basicClient().build();
 		multiplier = 1.0 * ImageIO.read(driver.getScreenshotAs(OutputType.FILE)).getWidth() / driver.manage().window().getSize().width;
 
-		// System.out.println(multiplier); //TODO: debug log
+		log.debug("The screen multiplier is {}", multiplier);
 	}
 
 	/**
@@ -122,14 +142,177 @@ public class TestAiDriver // extends RemoteWebDriver
 		return this;
 	}
 
+	@Override
+	public Object executeAsyncScript(String script, Object... args)
+	{
+		return driver.executeAsyncScript(script, args);
+	}
+
+	@Override
+	public Object executeScript(String script, Object... args)
+	{
+		return driver.executeScript(script, args);
+	}
+
 	/**
 	 * Opens a web browser and directs it to {@code url}.
 	 * 
 	 * @param url The URL to launch the browser to.
 	 */
+	@Override
 	public void get(String url)
 	{
 		driver.get(url);
+	}
+
+	@Override
+	public WebElement findElement(By locator)
+	{
+		return driver.findElement(locator);
+	}
+
+	@Override
+	public List<WebElement> findElements(By locator)
+	{
+		return driver.findElements(locator);
+	}
+
+	@Override
+	public Capabilities getCapabilities()
+	{
+		return driver.getCapabilities();
+	}
+
+	@Override
+	public CommandExecutor getCommandExecutor()
+	{
+		return driver.getCommandExecutor();
+	}
+
+	@Override
+	public String getCurrentUrl()
+	{
+		return driver.getCurrentUrl();
+	}
+
+	@Override
+	public ErrorHandler getErrorHandler()
+	{
+		return driver.getErrorHandler();
+	}
+
+	@Override
+	public FileDetector getFileDetector()
+	{
+		return driver.getFileDetector();
+	}
+
+	@Override
+	public Keyboard getKeyboard()
+	{
+		return driver.getKeyboard();
+	}
+
+	@Override
+	public Mouse getMouse()
+	{
+		return driver.getMouse();
+	}
+
+	@Override
+	public String getPageSource()
+	{
+		return driver.getPageSource();
+	}
+
+	@Override
+	public <X> X getScreenshotAs(OutputType<X> outputType)
+	{
+		return driver.getScreenshotAs(outputType);
+	}
+
+	@Override
+	public SessionId getSessionId()
+	{
+		return driver.getSessionId();
+	}
+
+	@Override
+	public String getTitle()
+	{
+		return driver.getTitle();
+	}
+
+	@Override
+	public String getWindowHandle()
+	{
+		return driver.getWindowHandle();
+	}
+
+	@Override
+	public Set<String> getWindowHandles()
+	{
+		return driver.getWindowHandles();
+	}
+
+	@Override
+	public Options manage()
+	{
+		return driver.manage();
+	}
+
+	@Override
+	public Navigation navigate()
+	{
+		return driver.navigate();
+	}
+
+	@Override
+	public void perform(Collection<Sequence> actions)
+	{
+		driver.perform(actions);
+	}
+
+	@Override
+	public void quit()
+	{
+		driver.quit();
+	}
+
+	@Override
+	public void resetInputState()
+	{
+		driver.resetInputState();
+	}
+
+	@Override
+	public void setErrorHandler(ErrorHandler handler)
+	{
+		driver.setErrorHandler(handler);
+	}
+
+	@Override
+	public void setFileDetector(FileDetector detector)
+	{
+		driver.setFileDetector(detector);
+	}
+
+	@Override
+	public void setLogLevel(Level level)
+	{
+		driver.setLogLevel(level);
+	}
+
+	@Override
+	public TargetLocator switchTo()
+	{
+		return driver.switchTo();
+	}
+
+	@Override
+	public String toString()
+	{
+		return driver.toString();
 	}
 
 	/**
@@ -150,6 +333,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The class name of the element to find
 	 * @return The element that was found. Raises an exception otherwise.
 	 */
+	@Override
 	public WebElement findElementByClassName(String using)
 	{
 		return findElementByClassName(using, null);
@@ -161,6 +345,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The class name of the elements to find.
 	 * @return A {@code List} with any elements that were found, or an empty {@code List} if no matches were found.
 	 */
+	@Override
 	public List<WebElement> findElementsByClassName(String using)
 	{
 		return driver.findElementsByClassName(using);
@@ -184,6 +369,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The css selector of the element to find
 	 * @return The element that was found. Raises an exception otherwise.
 	 */
+	@Override
 	public WebElement findElementByCssSelector(String using)
 	{
 		return findElementByCssSelector(using, null);
@@ -195,6 +381,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The css selector of the elements to find.
 	 * @return A {@code List} with any elements that were found, or an empty {@code List} if no matches were found.
 	 */
+	@Override
 	public List<WebElement> findElementsByCssSelector(String using)
 	{
 		return driver.findElementsByCssSelector(using);
@@ -218,6 +405,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The id of the element to find
 	 * @return The element that was found. Raises an exception otherwise.
 	 */
+	@Override
 	public WebElement findElementById(String using)
 	{
 		return findElementById(using, null);
@@ -229,6 +417,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The id of the elements to find.
 	 * @return A {@code List} with any elements that were found, or an empty {@code List} if no matches were found.
 	 */
+	@Override
 	public List<WebElement> findElementsById(String using)
 	{
 		return driver.findElementsById(using);
@@ -252,6 +441,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The link text of the element to find
 	 * @return The element that was found. Raises an exception otherwise.
 	 */
+	@Override
 	public WebElement findElementByLinkText(String using)
 	{
 		return findElementByLinkText(using, null);
@@ -263,6 +453,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The link text of the elements to find.
 	 * @return A {@code List} with any elements that were found, or an empty {@code List} if no matches were found.
 	 */
+	@Override
 	public List<WebElement> findElementsByLinkText(String using)
 	{
 		return driver.findElementsByLinkText(using);
@@ -286,6 +477,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The name of the element to find
 	 * @return The element that was found. Raises an exception otherwise.
 	 */
+	@Override
 	public WebElement findElementByName(String using)
 	{
 		return findElementByName(using, null);
@@ -297,6 +489,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The name of the elements to find.
 	 * @return A {@code List} with any elements that were found, or an empty {@code List} if no matches were found.
 	 */
+	@Override
 	public List<WebElement> findElementsByName(String using)
 	{
 		return driver.findElementsByName(using);
@@ -320,6 +513,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The partial link text of the element to find
 	 * @return The element that was found. Raises an exception otherwise.
 	 */
+	@Override
 	public WebElement findElementByPartialLinkText(String using)
 	{
 		return findElementByPartialLinkText(using, null);
@@ -331,6 +525,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The partial link text of the elements to find.
 	 * @return A {@code List} with any elements that were found, or an empty {@code List} if no matches were found.
 	 */
+	@Override
 	public List<WebElement> findElementsByPartialLinkText(String using)
 	{
 		return driver.findElementsByPartialLinkText(using);
@@ -354,6 +549,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The tag name of the element to find
 	 * @return The element that was found. Raises an exception otherwise.
 	 */
+	@Override
 	public WebElement findElementByTagName(String using)
 	{
 		return findElementByTagName(using, null);
@@ -365,6 +561,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The tag name of the elements to find.
 	 * @return A {@code List} with any elements that were found, or an empty {@code List} if no matches were found.
 	 */
+	@Override
 	public List<WebElement> findElementsByTagName(String using)
 	{
 		return driver.findElementsByTagName(using);
@@ -388,6 +585,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The xpath of the element to find
 	 * @return The element that was found. Raises an exception otherwise.
 	 */
+	@Override
 	public WebElement findElementByXPath(String using)
 	{
 		return findElementByXPath(using, null);
@@ -399,6 +597,7 @@ public class TestAiDriver // extends RemoteWebDriver
 	 * @param using The xpath of the elements to find.
 	 * @return A {@code List} with any elements that were found, or an empty {@code List} if no matches were found.
 	 */
+	@Override
 	public List<WebElement> findElementsByXPath(String using)
 	{
 		return driver.findElementsByXPath(using);
@@ -448,15 +647,13 @@ public class TestAiDriver // extends RemoteWebDriver
 		}
 		catch (Throwable x)
 		{
-			// TODO: debug log
-			// System.err.printf("GOT INTO THE CATCH FOR ELEMENT BY %s%n", shortcode);
-			// x.printStackTrace();
+			log.info("Element '{}' was not found by Selenium, trying with test.ai...", elementName);
 
 			ClassifyResult result = classify(elementName);
 			if (result.e != null)
 				return result.e;
 
-			// System.out.printf("CLASSIFY FOR %s was NULL!!!%n", elementName);
+			log.error("test.ai was also unable to find the element with name '{}'", elementName);
 
 			throw x;
 		}
@@ -518,17 +715,31 @@ public class TestAiDriver // extends RemoteWebDriver
 
 			if (JsonUtils.booleanFromJson(r, "success"))
 			{
-				System.out.printf("successful classification of element_name: %s%n", elementName);
+				log.info("Successfully classified: {}", elementName);
 				return new ClassifyResult(new TestAiElement(r.get("elem").getAsJsonObject(), driver, multiplier), key);
 			}
-			else
-				msg = String.format("Classification failed for element_name: %s - Please visit %s/label/%s to classify%n", elementName, serverURL, elementName);
+
+			String rawMsg = JsonUtils.stringFromJson(r, "message");
+
+			if (rawMsg != null)
+			{
+				String cFailedBase = "Classification failed for element_name: ";
+
+				if (rawMsg.contains("Please label") || rawMsg.contains("Did not find"))
+					msg = String.format("%s%s - Please visit %s/label/%s to classify", cFailedBase, elementName, serverURL, elementName);
+				else if (rawMsg.contains("frozen label"))
+					msg = String.format("%s%s - However this element is frozen, so no new screenshot was uploaded. Please unfreeze the element if you want to add this screenshot to training", cFailedBase,
+							elementName);
+				else
+					msg = String.format("%s: Unknown error, here was the API response: %s", msg, r);
+			}
 		}
 		catch (Throwable e)
 		{
 			e.printStackTrace();
 		}
 
+		log.warn(msg);
 		return new ClassifyResult(null, key, msg);
 	}
 

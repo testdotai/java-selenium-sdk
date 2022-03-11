@@ -2,13 +2,18 @@ package ai.test.sdk;
 
 import com.google.gson.JsonObject;
 
+import java.util.List;
+
+import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.Rectangle;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.openqa.selenium.interactions.Coordinates;
 
 /**
@@ -19,6 +24,11 @@ import org.openqa.selenium.interactions.Coordinates;
  */
 public class TestAiElement extends RemoteWebElement
 {
+	/**
+	 * The logger for this class
+	 */
+	private static Logger log = LoggerFactory.getLogger(TestAiElement.class);
+
 	/**
 	 * The webdriver the user is using. We wrap this for when the user calls methods that interact with selenium.
 	 */
@@ -111,6 +121,54 @@ public class TestAiElement extends RemoteWebElement
 	}
 
 	@Override
+	public void clear()
+	{
+		sendKeys("", false, true); // TODO: this is incredibly hacky
+	}
+
+	@Override
+	public WebElement findElement(By by)
+	{
+		return driver.findElement(by);
+	}
+
+	@Override
+	public List<WebElement> findElements(By by)
+	{
+		return driver.findElements(by);
+	}
+
+	@Override
+	public String getAttribute(String name)
+	{
+		return null;
+	}
+
+	@Override
+	public String getCssValue(String propertyName)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean isDisplayed()
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean isEnabled()
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean isSelected()
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public void click()
 	{
 		click(true);
@@ -126,13 +184,13 @@ public class TestAiElement extends RemoteWebElement
 	{
 		if (jsClick)
 		{
-			// TODO: Debug log
-			// System.out.printf("X Y AT: %d, %d%n", location.x, location.y);
-			// System.out.printf("Clicking AT: %d, %d%n", cX, cY);
+			log.debug("Performing a JavaScript click on the element at ({}, {}), the click will be performed at ({}, {})", location.x, location.y, cX, cY);
 			driver.executeScript(String.format("document.elementFromPoint(%d, %d).click();", cX, cY));
 		}
 
 		else
+		{
+			log.debug("Performing a standard selenium click on the element at ({}, {}), the click will be performed at ({}, {})", location.x, location.y, cX, cY);
 			driver.getMouse().click(new Coordinates() {
 				public Point onScreen()
 				{
@@ -155,6 +213,7 @@ public class TestAiElement extends RemoteWebElement
 					// return getId();
 				}
 			});
+		}
 
 	}
 

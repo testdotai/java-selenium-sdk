@@ -8,17 +8,19 @@ plugins {
 
 description="${project.name} build script"
 group="ai.test.sdk"
-version="0.0.2"
+version="0.1.0"
 
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
 dependencies {
+    api 'com.google.code.gson:gson:2.9.0'
     api 'com.squareup.okhttp3:okhttp:4.9.3'
-    api 'com.google.code.gson:gson:2.8.9'
     api 'org.seleniumhq.selenium:selenium-java:3.141.59'
+    api 'org.slf4j:slf4j-api:1.7.36'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
 }
