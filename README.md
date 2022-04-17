@@ -1,9 +1,11 @@
-[![test.ai sdk logo](https://testdotai.github.io/static-assets/logo-sdk.png)](https://adoptium.net)
+[![test.ai sdk logo](https://testdotai.github.io/static-assets/shared/logo-sdk.png)](https://test.ai/sdk)
 
 [![JDK-11+](https://img.shields.io/badge/JDK-11%2B-blue)](https://adoptium.net)
-[![Apache 2.0](https://img.shields.io/badge/Apache-2.0-blue)](https://www.apache.org/licenses/LICENSE-2.0)
 [![javadoc](https://javadoc.io/badge2/ai.test.sdk/test-ai-selenium/javadoc.svg)](https://javadoc.io/doc/ai.test.sdk/test-ai-selenium)
+[![Maven Central](https://img.shields.io/maven-central/v/ai.test.sdk/test-ai-selenium)](https://search.maven.org/artifact/ai.test.sdk/test-ai-selenium)
+[![Apache 2.0](https://img.shields.io/badge/Apache-2.0-blue)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Discord](https://img.shields.io/discord/853669216880295946?&logo=discord)](https://sdk.test.ai/discord)
+[![Twitter](https://img.shields.io/twitter/follow/testdotai)](https://twitter.com/testdotai)
 
 The test.ai selenium SDK is a simple library that makes it easy to write robust cross-browser web tests backed by computer vision and artificial intelligence.
 

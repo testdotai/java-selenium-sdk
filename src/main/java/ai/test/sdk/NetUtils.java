@@ -13,10 +13,14 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import com.google.gson.JsonObject;
+
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
@@ -28,9 +32,44 @@ import okhttp3.Response;
 final class NetUtils
 {
 	/**
+	 * The {@code MediaType} representing the json MIME type.
+	 */
+	private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+
+	/**
+	 * Performs a simple POST to the specified url with the provided client and {@code RequestBody}.
+	 * 
+	 * @param client The OkHttp client to use
+	 * @param baseURL The base URL to target
+	 * @param endpoint The endpoint on the baseURL to target.
+	 * @param b The request body to POST.
+	 * @return The response from the server, in the form of a {@code Response} object
+	 * @throws IOException Network error
+	 */
+	private static Response basicPOST(OkHttpClient client, HttpUrl baseURL, String endpoint, RequestBody b) throws IOException
+	{
+		return client.newCall(new Request.Builder().url(baseURL.newBuilder().addPathSegment(endpoint).build()).post(b).build()).execute();
+	}
+
+	/**
+	 * Performs a simple POST to the specified url with the provided client and json data.
+	 * 
+	 * @param client The OkHttp client to use
+	 * @param baseURL The base URL to target
+	 * @param endpoint The endpoint on the baseURL to target.
+	 * @param jo The JsonObject to put in the request body
+	 * @return The response from the server, in the form of a {@code Response} object
+	 * @throws IOException Network error
+	 */
+	public static Response basicPOST(OkHttpClient client, HttpUrl baseURL, String endpoint, JsonObject jo) throws IOException
+	{
+		return basicPOST(client, baseURL, endpoint, RequestBody.create(jo.toString(), JSON));
+	}
+
+	/**
 	 * Performs a simple form POST to the specified url with the provided client and form data.
 	 * 
-	 * @param client The OkHTTP client to use
+	 * @param client The OkHttp client to use
 	 * @param baseURL The base URL to target
 	 * @param endpoint The endpoint on the baseURL to target.
 	 * @param form The form data to POST
@@ -42,7 +81,7 @@ final class NetUtils
 		FormBody.Builder fb = new FormBody.Builder();
 		form.forEach(fb::add);
 
-		return client.newCall(new Request.Builder().url(baseURL.newBuilder().addPathSegment(endpoint).build()).post(fb.build()).build()).execute();
+		return basicPOST(client, baseURL, endpoint, fb.build());
 	}
 
 	/**

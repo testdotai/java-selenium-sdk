@@ -2,7 +2,6 @@ package ai.test.sdk;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -45,6 +44,11 @@ import okhttp3.Response;
 public class TestAiDriver extends RemoteWebDriver
 {
 	/**
+	 * The current version of the SDK
+	 */
+	private static String SDK_VERSION = "0.2.0";
+
+	/**
 	 * The logger for this class
 	 */
 	private static Logger log = LoggerFactory.getLogger(TestAiDriver.class);
@@ -57,7 +61,7 @@ public class TestAiDriver extends RemoteWebDriver
 	/**
 	 * The driver used by the user that we're wrapping.
 	 */
-	private RemoteWebDriver driver;
+	RemoteWebDriver driver;
 
 	/**
 	 * The user's fluffy dragon API key
@@ -92,7 +96,7 @@ public class TestAiDriver extends RemoteWebDriver
 	/**
 	 * The screen density multiplier
 	 */
-	private double multiplier;
+	double multiplier;
 
 	/**
 	 * Constructor, creates a new TestAiDriver.
@@ -111,11 +115,41 @@ public class TestAiDriver extends RemoteWebDriver
 		this.testCaseName = testCaseName;
 		// this.train = train;
 
+		if (testCaseName == null)
+		{
+			StackTraceElement[] sl = Thread.currentThread().getStackTrace();
+			if (sl.length > 0)
+			{
+				StackTraceElement bottom = sl[sl.length - 1];
+				this.testCaseName = String.format("%s.%s", bottom.getClassName(), bottom.getMethodName());
+
+				log.info("No test case name was specified, defaulting to {}", this.testCaseName);
+			}
+			else
+				this.testCaseName = "My first test case";
+		}
+
 		this.serverURL = HttpUrl.parse(serverURL != null ? serverURL : Objects.requireNonNullElse(System.getenv("TESTAI_FLUFFY_DRAGON_URL"), "https://sdk.test.ai"));
 		client = this.serverURL.equals(HttpUrl.parse("https://sdk.dev.test.ai")) ? NetUtils.unsafeClient() : NetUtils.basicClient().build();
 		multiplier = 1.0 * ImageIO.read(driver.getScreenshotAs(OutputType.FILE)).getWidth() / driver.manage().window().getSize().width;
 
 		log.debug("The screen multiplier is {}", multiplier);
+
+		try
+		{
+			JsonObject payload = CollectionUtils.keyValuesToJO("api_key", apiKey, "os",
+					String.format("%s-%s-%s", System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch")), "sdk_version", SDK_VERSION, "language",
+					String.format("java-%s", System.getProperty("java.version")), "test_case_uuid", runID);
+			log.debug("Checking in with: {}", payload.toString());
+
+			JsonObject r = JsonUtils.responseAsJson(NetUtils.basicPOST(client, this.serverURL, "sdk_checkin", payload));
+			if (!JsonUtils.booleanFromJson(r, "success"))
+				log.debug("Error during checkin, server said: {}", r);
+		}
+		catch (Throwable e)
+		{
+			log.debug("Checkin failed catastrophically: {}", e.getMessage());
+		}
 	}
 
 	/**
@@ -604,12 +638,24 @@ public class TestAiDriver extends RemoteWebDriver
 	}
 
 	/**
+	 * Finds an element by {@code elementName}. Please use {@link #findElementByElementName(String)} instead.
+	 * 
+	 * @param elementName The label name of the element to be classified.
+	 * @return An element associated with {@code elementName}. Throws NoSuchElementException otherwise.
+	 */
+	@Deprecated
+	public WebElement findByElementName(String elementName)
+	{
+		return findElementByElementName(elementName);
+	}
+
+	/**
 	 * Finds an element by {@code elementName}.
 	 * 
 	 * @param elementName The label name of the element to be classified.
 	 * @return An element associated with {@code elementName}. Throws NoSuchElementException otherwise.
 	 */
-	public WebElement findByElementName(String elementName)
+	public WebElement findElementByElementName(String elementName)
 	{
 		ClassifyResult r = classify(elementName);
 		if (r.e == null)
@@ -670,11 +716,12 @@ public class TestAiDriver extends RemoteWebDriver
 	private void updateElement(WebElement elem, String key, String elementName, boolean trainIfNecessary)
 	{
 		Rectangle rect = elem.getRect();
-		HashMap<String, String> form = CollectionUtils.keyValuesToHM("key", key, "api_key", apiKey, "run_id", runID, "x", Integer.toString(rect.x), "y", Integer.toString(rect.y), "width",
-				Integer.toString(rect.width), "height", Integer.toString(rect.height), "multiplier", Double.toString(multiplier), "train_if_necessary", Boolean.toString(trainIfNecessary));
+		JsonObject form = CollectionUtils.keyValuesToJO("key", key, "api_key", apiKey, "label", elementName, "run_id", runID, "x", rect.x * multiplier, "y", rect.y * multiplier, "width",
+				rect.width * multiplier, "height", rect.height * multiplier, "multiplier", multiplier, "train_if_necessary", trainIfNecessary, "test_case_uuid", testCaseName);
 
 		try (Response r = NetUtils.basicPOST(client, serverURL, "add_action", form))
 		{
+			log.debug("Updated element {}, response from the server was '{}'", elementName, r.body().string());
 		}
 		catch (Throwable e)
 		{
@@ -690,8 +737,8 @@ public class TestAiDriver extends RemoteWebDriver
 	 */
 	private ClassifyResult classify(String elementName)
 	{
-		if (testCaseName != null)
-			return null; // TODO: add test case creation/interactive mode
+		// if (testCaseName != null)
+		// return null; // TODO: add test case creation/interactive mode
 
 		String pageSource = "", msg = "test.ai driver exception", key = null;
 		try
@@ -716,7 +763,7 @@ public class TestAiDriver extends RemoteWebDriver
 			if (JsonUtils.booleanFromJson(r, "success"))
 			{
 				log.info("Successfully classified: {}", elementName);
-				return new ClassifyResult(new TestAiElement(r.get("elem").getAsJsonObject(), driver, multiplier), key);
+				return new ClassifyResult(new TestAiElement(r.get("elem").getAsJsonObject(), this), key);
 			}
 
 			String rawMsg = JsonUtils.stringFromJson(r, "message");

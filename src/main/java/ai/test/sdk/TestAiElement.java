@@ -9,12 +9,10 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.openqa.selenium.interactions.Coordinates;
 
 /**
  * An enhanced RemoteWebElement which uses the results of the Test.ai classifier for improved accuracy.
@@ -33,6 +31,11 @@ public class TestAiElement extends RemoteWebElement
 	 * The webdriver the user is using. We wrap this for when the user calls methods that interact with selenium.
 	 */
 	private RemoteWebDriver driver;
+
+	/**
+	 * The underlying {@code WebElement} used for performing actions in the browser.
+	 */
+	private WebElement realElement;
 
 	/**
 	 * The text in this element, as determined by test.ai's classifier
@@ -60,34 +63,27 @@ public class TestAiElement extends RemoteWebElement
 	private String tagName;
 
 	/**
-	 * Coordinates for clicking/taping this element.
-	 * 
-	 * @see #click()
-	 */
-	private int cX, cY;
-
-	/**
 	 * Constructor, creates a new TestAiElement
 	 * 
 	 * @param elem The element data returned by the FD API, as JSON
-	 * @param driver The driver the user is using to interact with their app
-	 * @param multiplier The screen density multiplier to use
+	 * @param driver The {@code TestAiDriver} to associate with this {@code TestAiElement}.
 	 */
-	TestAiElement(JsonObject elem, RemoteWebDriver driver, double multiplier)
+	TestAiElement(JsonObject elem, TestAiDriver driver)
 	{
-		this.driver = driver;
+		log.debug("Creating new TestAiElement w/ {}", elem);
+
+		this.driver = driver.driver;
+		this.realElement = MatchUtils.matchBoundingBoxToSeleniumElement(elem, driver);
 
 		text = JsonUtils.stringFromJson(elem, "text");
-		size = new Dimension(JsonUtils.intFromJson(elem, "width") / (int) multiplier, JsonUtils.intFromJson(elem, "height") / (int) multiplier);
+		size = new Dimension(JsonUtils.intFromJson(elem, "width") / (int) driver.multiplier, JsonUtils.intFromJson(elem, "height") / (int) driver.multiplier);
 
-		location = new Point(JsonUtils.intFromJson(elem, "x") / (int) multiplier, JsonUtils.intFromJson(elem, "y") / (int) multiplier);
+		location = new Point(JsonUtils.intFromJson(elem, "x") / (int) driver.multiplier, JsonUtils.intFromJson(elem, "y") / (int) driver.multiplier);
 
 		// this.property = property //TODO: not referenced/implemented on python side??
 		rectangle = new Rectangle(location, size);
 		tagName = JsonUtils.stringFromJson(elem, "class");
 
-		cX = location.x + size.width / 2;
-		cY = location.y + size.height / 2;
 	}
 
 	@Override
@@ -123,7 +119,7 @@ public class TestAiElement extends RemoteWebElement
 	@Override
 	public void clear()
 	{
-		sendKeys("", false, true); // TODO: this is incredibly hacky
+		realElement.clear();
 	}
 
 	@Override
@@ -141,111 +137,48 @@ public class TestAiElement extends RemoteWebElement
 	@Override
 	public String getAttribute(String name)
 	{
-		return null;
+		return realElement.getAttribute(name);
 	}
 
 	@Override
 	public String getCssValue(String propertyName)
 	{
-		throw new UnsupportedOperationException();
+		return realElement.getCssValue(propertyName);
 	}
 
 	@Override
 	public boolean isDisplayed()
 	{
-		throw new UnsupportedOperationException();
+		return realElement.isDisplayed();
 	}
 
 	@Override
 	public boolean isEnabled()
 	{
-		throw new UnsupportedOperationException();
+		return realElement.isEnabled();
 	}
 
 	@Override
 	public boolean isSelected()
 	{
-		throw new UnsupportedOperationException();
+		return realElement.isSelected();
 	}
 
 	@Override
 	public void click()
 	{
-		click(true);
-	}
-
-	/**
-	 * Attempts to perform a click action on this element
-	 * 
-	 * @param jsClick Set `true` to use javascript to perform the click.
-	 */
-	@SuppressWarnings("deprecation")
-	public void click(boolean jsClick)
-	{
-		if (jsClick)
-		{
-			log.debug("Performing a JavaScript click on the element at ({}, {}), the click will be performed at ({}, {})", location.x, location.y, cX, cY);
-			driver.executeScript(String.format("document.elementFromPoint(%d, %d).click();", cX, cY));
-		}
-
-		else
-		{
-			log.debug("Performing a standard selenium click on the element at ({}, {}), the click will be performed at ({}, {})", location.x, location.y, cX, cY);
-			driver.getMouse().click(new Coordinates() {
-				public Point onScreen()
-				{
-					throw new UnsupportedOperationException("Not supported yet.");
-				}
-
-				public Point inViewPort()
-				{
-					return new Point(cX, cY);
-				}
-
-				public Point onPage()
-				{
-					return inViewPort();
-				}
-
-				public Object getAuxiliary()
-				{
-					return "dummy";
-					// return getId();
-				}
-			});
-		}
-
+		realElement.click();
 	}
 
 	@Override
 	public void sendKeys(CharSequence... keysToSend)
 	{
-		sendKeys(String.join("", keysToSend), true, true);
-	}
-
-	/**
-	 * Attempts to type the specified String ({@code value}) into this element.
-	 * 
-	 * @param value The String to type into this element.
-	 * @param clickFirst Set {@code true} to tap this element (e.g. to focus it) first before sending keys.
-	 * @param jsKeys Set {@code true} to use javascript to set the {@code value} property of this element.
-	 */
-	public void sendKeys(String value, boolean clickFirst, boolean jsKeys)
-	{
-		if (jsKeys)
-			driver.executeScript(String.format("document.elementFromPoint(%d, %d).value = `%s`;", cX, cY, value.replace("`", "\\`")));
-		else
-		{
-			if (clickFirst)
-				click();
-
-			new Actions(driver).sendKeys(value).perform();
-		}
+		realElement.sendKeys(keysToSend);
 	}
 
 	@Override
 	public void submit()
 	{
-		sendKeys("\n", false, true);
+		realElement.submit();
 	}
 }

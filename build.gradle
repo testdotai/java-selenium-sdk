@@ -8,7 +8,7 @@ plugins {
 
 description="${project.name} build script"
 group="ai.test.sdk"
-version="0.1.0"
+version="0.2.0"
 
 
 repositories {
@@ -105,5 +105,5 @@ tasks.named('test') {
 }
 
 wrapper {
-    gradleVersion = '7.4'
+    gradleVersion = '7.4.1'
 }
